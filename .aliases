@@ -1,0 +1,6 @@
+
+alias cls="clear; ls"
+alias hgit="git log --pretty=oneline --abbrev-commit"
+alias golang='cd $GOPATH'
+alias docker-clear-containers="docker ps -a | awk '{if (NR!=1) print $1}' | xargs docker rm"
+
