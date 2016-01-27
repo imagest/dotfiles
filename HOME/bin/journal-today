@@ -1,0 +1,76 @@
+#!/bin/bash
+
+JOURNAL_DIR=""
+DEFAULT_JOURNAL_DIR="$HOME/works/journal/Journal"
+
+# prints /$MONTH/$DATE
+TODAY_PATH=""
+TODAY_DAY=$(date "+%d")
+TODAY_MONTH=$(date "+%m")
+TODAY_YEAR=$(date "+%Y")
+
+YESTERDA_PATH=""
+YESTERDAY_DAY=$(date --date="1 day ago" "+%d")
+YESTERDAY_MONTH=$(date --date="1 day ago" "+%m")
+YESTERDAY_YEAR=$(date --date="1 day ago" "+%Y")
+
+# does symlink exist (convention)
+if [ -L $HOME/journal-$TODAY_YEAR ]; then
+    JOURNAL_DIR=$HOME/journal-$TODAY_YEAR
+fi
+
+# if not does journal exist in 'usual location'
+# i.e., $HOME/works/journal/Journal
+if [ ! -n "$JOURNAL_DIR" ]; then
+    JOURNAL_DIR=$DEFAULT_JOURNAL_DIR/$TODAY_YEAR
+fi
+
+
+# by this point, the $JOURNAL_DIR should be set. Confirm if the directory exists
+if [ -d "$JOURNAL_DIR" ]; then
+    TODAY_PATH=$JOURNAL_DIR/$TODAY_MONTH
+    YESTERDAY_PATH=$JOURNAL_DIR/$YESTERDAY_MONTH
+
+    # if month doesn't exist, create
+    if [ -d $TODAY_PATH ]; then
+        echo "creating month directory " $TODAY_PATH "..."
+        mkdir -p $TODAY_PATH
+    fi
+
+    # if yesterday doesn't exist, then chances are you're doing this past midnight.
+    if [ ! -f $YESTERDAY_PATH/$YESTERDAY_DAY ]; then
+        echo "yesterday's journal not found..."
+        read -r -p "Open up editor for $YESTERDA_PATH/$YESTERDAY_DAY? [Y/N] " response
+        case $response
+            in [yY][eE][sS]|[yY])
+                mkdir -p $JOURNAL_DIR/$YESTERDAY_MONTH
+                cd $YESTERDAY_PATH
+                YESTERDAY_PATH=$YESTERDAY_PATH/$YESTERDAY_DAY
+                echo "Opening $YESTERDAY_PATH..."
+                vim $YESTERDAY_PATH
+                ;;
+            *)
+                cd $TODAY_PATH
+                TODAY_PATH=$TODAY_PATH/$TODAY_DAY
+                vim $TODAY_PATH
+        esac
+    else 
+        # this CD is so you can open previous journals under the vim context
+        cd $TODAY_PATH
+        TODAY_PATH=$TODAY_PATH/$TODAY_DAY
+        echo "Opening $TODAY_PATH..."
+        vim $TODAY_PATH
+    fi
+
+    #return context
+    # cd -
+else
+    echo "error: directory $JOURNAL_DIR/$TODAY_MONTH does not exist."
+    read -r -p "Create $JOURNAL_DIR for future usage? [Y/N]" response
+    case $response
+        in [yY][eE][sS]|[yY])
+        mkdir -p $JOURNAL_DIR/$TODAY_MONTH
+        echo "exiting... please re-run script to access the created directory."
+        ;;
+    esac
+fi

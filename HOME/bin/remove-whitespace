@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# replace whitespace
+find -name "* *" -type f | rename 's/ /_g'
+
